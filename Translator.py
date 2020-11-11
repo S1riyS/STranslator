@@ -37,7 +37,7 @@ languages = {"Русский": "ru", "Английский": "en", "Японск
 voices = Voices.get_voices()
 
 
-class MyWidget(QMainWindow):
+class STranslator(QMainWindow):
     """##########=-  ИНИЦИАЛИЗАЦИЯ ПРИЛОЖЕНИЯ И ПЕРЕМЕННЫХ  -=##########"""
     def __init__(self):
         super().__init__()
@@ -48,7 +48,7 @@ class MyWidget(QMainWindow):
         uic.loadUi("Translator.ui", self)  # Загружаем UI файл
         self.setFixedSize(self.windows_width, self.windows_height)  # Задаем фиксированный размер
         self.setWindowIcon(QtGui.QIcon("Icons/icon.png"))  # Загружаем иконку приложения
-        self.setWindowTitle("Translator")  # Устанавливаем название окна
+        self.setWindowTitle("STranslator")  # Устанавливаем название окна
 
         self.translator = Translator() # Инициализируем Переводчик
         self.recognizer = (sr.Recognizer())  # Инициализируем библиотеку "speech_recognition"
@@ -550,8 +550,6 @@ class MyWidget(QMainWindow):
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-
-
-    ex = MyWidget()
+    ex = STranslator()
     ex.show()
     sys.exit(app.exec_())
