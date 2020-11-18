@@ -1,4 +1,11 @@
 # -*- coding: utf-8 -*-
+
+"""
+Application: STranslator
+Version: 1.0.1
+Author: S1riyS
+"""
+
 """#####################=-  ИМПОРТИРУЕМ МОДУЛИ -=#####################"""
 try:
     import sys
@@ -31,41 +38,41 @@ except ImportError as e:
 
 
 # Словарь с языками
-languages = {"Русский": "ru", "Английский": "en", "Японский": "ja", "Немецкий": "nl", "Китайский": "zh-cn"}
+LANGUAGES = {"Английский": "en", "Китайский": "zh-cn", "Немецкий": "nl", "Русский": "ru", "Японский": "ja"}
 
 # Словарь с голосами
-voices = Voices.get_voices()
+VOICES = Voices.get_voices()
 
 
 class STranslator(QMainWindow):
     """##########=-  ИНИЦИАЛИЗАЦИЯ ПРИЛОЖЕНИЯ И ПЕРЕМЕННЫХ  -=##########"""
     def __init__(self):
         super().__init__()
-        self.windows_width = 920 # Ширина окна по умолчанию
-        self.windows_height = 515 # Высота окна по умолчанию
-        self.history_width = 280 #  Ширина вкладки с историей переводов
+        self.WINDOWS_WIDTH = 920 # Ширина окна по умолчанию
+        self.WINDOWS_HEIGHT = 515 # Высота окна по умолчанию
+        self.HISTORY_WIDTH = 280 #  Ширина вкладки с историей переводов
 
         uic.loadUi("Translator.ui", self)  # Загружаем UI файл
-        self.setFixedSize(self.windows_width, self.windows_height)  # Задаем фиксированный размер
+        self.setFixedSize(self.WINDOWS_WIDTH, self.WINDOWS_HEIGHT)  # Задаем фиксированный размер
         self.setWindowIcon(QtGui.QIcon("Icons/icon.png"))  # Загружаем иконку приложения
         self.setWindowTitle("STranslator")  # Устанавливаем название окна
 
         self.translator = Translator() # Инициализируем Переводчик
-        self.recognizer = (sr.Recognizer())  # Инициализируем библиотеку "speech_recognition"
+        self.recognizer = sr.Recognizer()  # Инициализируем библиотеку "speech_recognition"
         self.engine = pyttsx3.init()  # Инициализируем библиотеку pyttsx3
-        self.end_loop = False # Закониоось ли воспроизвенение текста
+        self.END_LOOP = False # Закониоось ли воспроизвенение текста
 
-        self.max_symbols = 3100  # Максимальное количество символов, которое доступно для перевода
-        self.can_translate = True  # Можно ли перевести текст
-        self.fontSize_change_value = 800 # Когда поле ввода содержит более N символов, то мы меняем размер шрифта
-        self.current_font = QFont() # Создаем переменную, внутри которой будем менять размер шрифта
+        self.MAX_SYMBOLS = 3100  # Максимальное количество символов, которое доступно для перевода
+        self.CAN_TRANSLATE = True  # Можно ли перевести текст
+        self.FONT_SIZE_CHANGE_VALUE = 800 # Когда поле ввода содержит более N символов, то мы меняем размер шрифта
+        self.CURRENT_FONT = QFont() # Создаем переменную, внутри которой будем менять размер шрифта
 
 
-        self.is_history_open = False  # Открыта ли история переводов
+        self.IS_HISTORY_OPEN = False  # Открыта ли история переводов
         self.row, self.col = 0, 0  # Положение поля в таблицах с историей переводов по умолчанию
 
-        self.db_name = "Translator.db"  # Название БД с историей всех переводов
-        self.con = sqlite3.connect(self.db_name)  # Подключаемся к БД
+        self.DATABASE_NAME = "Translator.db"  # Название БД с историей всех переводов
+        self.con = sqlite3.connect(self.DATABASE_NAME)  # Подключаемся к БД
         self.cur = self.con.cursor()  # Создаем курсор для отправки запросов к БД
 
         self.initUI()  # Функцию, отвечающая за все события
@@ -74,9 +81,11 @@ class STranslator(QMainWindow):
     # Привязываем элементы приложения к функциямв
     def initUI(self):
         # Установка языков в выпадающие меню
-        for lang in languages:
+        for lang in LANGUAGES:
             self.inputLanguage.addItem(lang)
             self.outputLanguage.addItem(lang)
+
+        self.inputLanguage.setCurrentText("Русский")
         self.outputLanguage.setCurrentText("Английский")
 
         # Привязываем функцию "text_changed", которая срабатывает
@@ -110,7 +119,7 @@ class STranslator(QMainWindow):
         self.speakButton_in.clicked.connect(
             lambda: self.speak(
                 self.inputText.toPlainText(),
-                languages[self.inputLanguage.currentText()],
+                LANGUAGES[self.inputLanguage.currentText()],
             )
         )
 
@@ -118,13 +127,13 @@ class STranslator(QMainWindow):
         self.speakButton_out.clicked.connect(
             lambda: self.speak(
                 self.outputText.toPlainText(),
-                languages[self.outputLanguage.currentText()],
+                LANGUAGES[self.outputLanguage.currentText()],
             )
         )
 
         # Кнопка голосового ввода
         self.voiceInputButton.clicked.connect(
-            lambda: self.voice_input(languages[self.inputLanguage.currentText()])
+            lambda: self.voice_input(LANGUAGES[self.inputLanguage.currentText()])
         )
 
         # Кнопка удаления всей истории
@@ -175,25 +184,25 @@ class STranslator(QMainWindow):
         try:
             text_len = len(self.inputText.toPlainText()) # Длинная текста, который ввел пользователь
             # Выводим соотношение на экран
-            self.maxSymbols.setText(f"{text_len}/{self.max_symbols}")
+            self.maxSymbols.setText(f"{text_len}/{self.MAX_SYMBOLS}")
 
             if text_len == 0:
                 self.outputText.setPlainText("")
             # Меняем размер шрифта
-            if text_len > self.fontSize_change_value:
-                self.current_font.setPointSize(11)
+            if text_len > self.FONT_SIZE_CHANGE_VALUE:
+                self.CURRENT_FONT.setPointSize(11)
             else:
-                self.current_font.setPointSize(12)
+                self.CURRENT_FONT.setPointSize(12)
 
-            self.inputText.setFont(self.current_font)
-            self.outputText.setFont(self.current_font)
+            self.inputText.setFont(self.CURRENT_FONT)
+            self.outputText.setFont(self.CURRENT_FONT)
 
             # Проверяем, привышает ли длинна текста заданное число
             # Если да, то блокируем функцию "translate"
-            if text_len > self.max_symbols:
-                self.can_translate = False
+            if text_len > self.MAX_SYMBOLS:
+                self.CAN_TRANSLATE = False
             else:
-                self.can_translate = True
+                self.CAN_TRANSLATE = True
 
             self.switch_saveBtn_icon() # Если нужно, то меняем иконку кнопки
 
@@ -246,10 +255,10 @@ class STranslator(QMainWindow):
 
     # Перевод
     def translate(self):
-        if self.can_translate:
+        if self.CAN_TRANSLATE:
             in_text = self.inputText.toPlainText()  # Текст из поля ввода
-            in_lang = languages[self.inputLanguage.currentText()]  # Язык с которого переводим (ru/en/...)
-            out_lang = languages[self.outputLanguage.currentText()]  # Язык на который переводим (ru/en/...)
+            in_lang = LANGUAGES[self.inputLanguage.currentText()]  # Язык с которого переводим (ru/en/...)
+            out_lang = LANGUAGES[self.outputLanguage.currentText()]  # Язык на который переводим (ru/en/...)
             while True:
                 try:
                     # Запрос к гугл переводчику и занесение текста в поле вывода
@@ -288,7 +297,7 @@ class STranslator(QMainWindow):
         # Завершение воспроизведения
         def end_speaking():
             self.engine.endLoop()
-            self.end_loop = False
+            self.END_LOOP = False
 
         # Срабатывает при запуске
         def onStart(name):
@@ -296,7 +305,7 @@ class STranslator(QMainWindow):
 
         # Срабатывает постоянно до тех пор, пока не закнчится воспроизведение
         def onWord(name, location, length):
-            if self.end_loop:
+            if self.END_LOOP:
                 end_speaking()
 
         # Срабатывает при завершении воспроизведения
@@ -310,16 +319,16 @@ class STranslator(QMainWindow):
             self.engine.connect("finished-utterance", onEnd)
 
             # Устанавливаем язык, на которм будет воспроизводится текст
-            if language in voices:
-                self.engine.setProperty("voice", voices[language])
+            if language in VOICES:
+                self.engine.setProperty("voice", VOICES[language])
             else:
-                self.engine.setProperty("voice", voices["ru"])
+                self.engine.setProperty("voice", VOICES["ru"])
 
             self.engine.say(text)  # Запрос на воспроизведение текста
             self.engine.startLoop()  # Запуск воспроизведения
 
         except Exception as e:
-            self.end_loop = True
+            self.END_LOOP = True
 
 
     """#####################=-  ПОЛЕ ВЫВОДА  -=#####################"""
@@ -327,7 +336,6 @@ class STranslator(QMainWindow):
     # Копирование переведенного текста
     @staticmethod
     def addToClipBoard(text):
-        print(text)
         command = "echo " + text.strip() + "| clip"
         os.system(command)
 
@@ -336,22 +344,22 @@ class STranslator(QMainWindow):
     # Разворачиваем историю переводов
     def show_history(self):
         # Открываем или закрываем историю
-        if not self.is_history_open:
-            self.setFixedSize(self.windows_width + self.history_width, self.windows_height)
+        if not self.IS_HISTORY_OPEN:
+            self.setFixedSize(self.WINDOWS_WIDTH + self.HISTORY_WIDTH, self.WINDOWS_HEIGHT)
             self.historyButton.setIcon(QIcon('Icons/history_active.png'))
-            self.is_history_open = True
+            self.IS_HISTORY_OPEN = True
         else:
-            self.setFixedSize(self.windows_width, self.windows_height)
+            self.setFixedSize(self.WINDOWS_WIDTH, self.WINDOWS_HEIGHT)
             self.historyButton.setIcon(QIcon('Icons/history_inactive.png'))
-            self.is_history_open = False
+            self.IS_HISTORY_OPEN = False
         self.update_table_widgets()
 
     # Получение информации из поля ввода и текущие языки
     def get_data(self):
         data = [
             self.inputText.toPlainText(),
-            languages[self.inputLanguage.currentText()],
-            languages[self.outputLanguage.currentText()],
+            LANGUAGES[self.inputLanguage.currentText()],
+            LANGUAGES[self.outputLanguage.currentText()],
         ]
         return data
 
@@ -495,8 +503,8 @@ class STranslator(QMainWindow):
     def set_data_from_widget(self, widget: QTableWidget, cols=3):
         # Функция для получения ключа из словаря languages
         def get_key(item):
-            for i in languages:
-                if languages[i] == item:
+            for i in LANGUAGES:
+                if LANGUAGES[i] == item:
                     return i
 
         # Формируем массив с данными из выбранного поля виджета

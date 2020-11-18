@@ -17,11 +17,9 @@ class Voices:
                 lang = current_lang.split("-")[0].lower()
                 if lang not in VOICES:
                     VOICES[lang] = (
-                        r"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Speech\Voices\Tokens"
-                        + f"\\{voice}"
+                        rf"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Speech\Voices\Tokens\\{voice}"
                     )
                 count += 1
 
         except WindowsError as err:
             return VOICES
-            pass
