@@ -17,7 +17,7 @@ class Voices:
                 lang = current_lang.split("-")[0].lower()
                 if lang not in VOICES:
                     VOICES[lang] = (
-                        rf"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Speech\Voices\Tokens\\{voice}"
+                        r"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Speech\Voices\Tokens" + f"\\{voice}"
                     )
                 count += 1
 
